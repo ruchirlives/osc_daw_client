@@ -9,6 +9,48 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+namespace
+{
+    juce::String describeOscArgument(const juce::OSCArgument& argument)
+    {
+        if (argument.isInt32())
+            return "int32:" + juce::String(argument.getInt32());
+
+        if (argument.isFloat32())
+            return "float:" + juce::String(argument.getFloat32());
+
+        if (argument.isString())
+            return "string=\"" + argument.getString() + "\"";
+
+        if (argument.isBlob())
+            return "blob(" + juce::String(argument.getBlob().getSize()) + " bytes)";
+
+        if (argument.isColour())
+        {
+            const auto c = argument.getColour();
+            return "colour:rgba("
+                + juce::String(static_cast<int>(c.red)) + ","
+                + juce::String(static_cast<int>(c.green)) + ","
+                + juce::String(static_cast<int>(c.blue)) + ","
+                + juce::String(static_cast<int>(c.alpha)) + ")";
+        }
+
+        const char typeChars[2] = { argument.getType(), 0 };
+        return "type(" + juce::String::fromUTF8(typeChars) + ")";
+    }
+
+    juce::String describeOscMessage(const juce::OSCMessage& message)
+    {
+        juce::StringArray argumentDescriptions;
+
+        for (int i = 0; i < message.size(); ++i)
+            argumentDescriptions.add(describeOscArgument(message[i]));
+
+        return "address=" + message.getAddressPattern().toString()
+            + ", args=[" + argumentDescriptions.joinIntoString(", ") + "]";
+    }
+}
+
 //==============================================================================
 OSC_ClientAudioProcessor::OSC_ClientAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -198,6 +240,8 @@ void OSC_ClientAudioProcessor::sendOscMessage(const juce::MidiMessage& message)
         oscMessage.addString(tag);
     }
 
+    DBG("Preparing to send OSC message: " << describeOscMessage(oscMessage));
+
     // Attempt to send the message
     if (oscSender.send(oscMessage))
     {
@@ -215,7 +259,7 @@ juce::OSCMessage OSC_ClientAudioProcessor::createOscMessage(const juce::MidiMess
 {
 	// Get current time in milliseconds
 	const double now = juce::Time::getMillisecondCounterHiRes();
-    const float timestamp = static_cast<float>(now);
+    const float timestamp = 0; //static_cast<float>(now);
 
     if (message.isNoteOn())
     {
