@@ -3,6 +3,10 @@
 This is a VST3 client for DAWSERVER OSC_Server
 It requires [JUCE]([url](https://juce.com/)) installed
 
+Copyright (c) 2024 Ruchir Shah
+
+OSCDawServer is released under the terms of the GNU Affero General Public License v3.0. You are free to use, modify, and redistribute it as long as you comply with the AGPL, including sharing source changes. See [LICENSE](LICENSE) for the full text.
+
 ## Installation
 Install JUCE
 
