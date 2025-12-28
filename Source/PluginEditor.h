@@ -25,12 +25,12 @@ public:
           shadowColour(juce::Colours::black.withAlpha(0.35f))
     {
         setColour(juce::ResizableWindow::backgroundColourId, base);
-        setColour(juce::TextButton::buttonColourId, panel);
+        setColour(juce::TextButton::buttonColourId, panel.brighter(0.08f));
         setColour(juce::TextButton::buttonOnColourId, accent);
         setColour(juce::TextButton::textColourOffId, juce::Colours::white);
         setColour(juce::TextButton::textColourOnId, juce::Colours::white);
 
-        setColour(juce::ComboBox::backgroundColourId, panel);
+        setColour(juce::ComboBox::backgroundColourId, base.brighter(0.1f));
         setColour(juce::ComboBox::outlineColourId, juce::Colours::white.withAlpha(0.25f));
         setColour(juce::ComboBox::textColourId, juce::Colours::white);
 
@@ -48,7 +48,6 @@ public:
         setColour(juce::TextEditor::backgroundColourId, base.darker(0.5f));
         setColour(juce::TextEditor::outlineColourId, juce::Colours::white.withAlpha(0.3f));
         setColour(juce::TextEditor::textColourId, juce::Colours::white);
-        setColour(juce::TextEditor::highlightColourId, accent.withAlpha(0.45f));
 
         setColour(juce::ListBox::backgroundColourId, panel.darker(0.08f));
         setColour(juce::ListBox::outlineColourId, juce::Colours::white.withAlpha(0.15f));
@@ -66,7 +65,7 @@ public:
         juce::ignoreUnused(width, height);
         auto outlineColour = textEditor.findColour(juce::TextEditor::outlineColourId);
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(textEditor.getLocalBounds().toFloat(), 8.0f, 1.5f);
+        g.drawRoundedRectangle(textEditor.getLocalBounds().toFloat(), 6.0f, 1.5f);
     }
 
     void fillTextEditorBackground(juce::Graphics& g, int width, int height, juce::TextEditor& textEditor) override
@@ -74,7 +73,7 @@ public:
         juce::ignoreUnused(width, height);
         auto bg = textEditor.findColour(juce::TextEditor::backgroundColourId);
         g.setColour(bg);
-        g.fillRoundedRectangle(textEditor.getLocalBounds().toFloat(), 8.0f);
+        g.fillRoundedRectangle(textEditor.getLocalBounds().toFloat(), 6.0f);
     }
 
     void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
@@ -82,22 +81,25 @@ public:
     {
         auto bounds = button.getLocalBounds().toFloat();
 
-        juce::DropShadow shadow(shadowColour, 8, { 2, 3 });
+        juce::DropShadow shadow(shadowColour, 4, { 2, 2 });
         shadow.drawForRectangle(g, bounds.toNearestInt());
 
         auto baseColour = backgroundColour.interpolatedWith(juce::Colours::black, isButtonDown ? 0.25f : 0.0f);
         if (isMouseOverButton)
-            baseColour = baseColour.brighter(0.08f);
+            baseColour = baseColour.brighter(0.05f);
 
         g.setColour(baseColour);
-        g.fillRoundedRectangle(bounds, 8.0f);
+        g.fillRoundedRectangle(bounds, 6.0f);
+
+        g.setColour(juce::Colours::white.withAlpha(0.12f));
+        g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
     }
 
     void drawButtonText(juce::Graphics& g, juce::TextButton& button, bool isMouseOverButton,
                         bool isButtonDown) override
     {
         juce::ignoreUnused(isMouseOverButton, isButtonDown);
-        juce::Font font("Segoe UI", 14.0f, juce::Font::bold);
+        juce::Font font(14.0f, juce::Font::bold);
         g.setFont(font);
         g.setColour(button.findColour(juce::TextButton::textColourOffId));
         g.drawFittedText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, 1);
@@ -107,15 +109,14 @@ public:
                           bool shouldDrawButtonAsDown) override
     {
         juce::ignoreUnused(shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        auto bounds = button.getLocalBounds().toFloat().reduced(3.0f);
-        auto background = button.getToggleState() ? accent : panel;
-        g.setColour(background);
-        g.fillRoundedRectangle(bounds, bounds.getHeight() / 2.0f);
+        auto bounds = button.getLocalBounds().toFloat().reduced(4);
+        g.setColour(button.getToggleState() ? accent : panel);
+        g.fillRoundedRectangle(bounds, 6.0f);
 
-        g.setColour(juce::Colours::white.withAlpha(0.6f));
-        g.drawRoundedRectangle(bounds, bounds.getHeight() / 2.0f, 1.0f);
+        g.setColour(juce::Colours::white.withAlpha(0.7f));
+        g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
 
-        juce::Font font("Segoe UI", 12.0f, juce::Font::bold);
+        juce::Font font(12.0f, juce::Font::bold);
         g.setFont(font);
         g.setColour(juce::Colours::white);
         g.drawFittedText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, 1);
@@ -124,9 +125,9 @@ public:
     void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
     {
         g.setColour(findColour(juce::PopupMenu::backgroundColourId));
-        g.fillRoundedRectangle(0, 0, (float) width, (float) height, 8.0f);
+        g.fillRoundedRectangle(0.0f, 0.0f, (float) width, (float) height, 6.0f);
         g.setColour(juce::Colours::white.withAlpha(0.15f));
-        g.drawRoundedRectangle(0, 0, (float) width, (float) height, 8.0f, 1.2f);
+        g.drawRoundedRectangle(0.0f, 0.0f, (float) width, (float) height, 6.0f, 1.0f);
     }
 
 private:

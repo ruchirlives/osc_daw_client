@@ -146,15 +146,19 @@ void OSC_ClientAudioProcessorEditor::resized()
 {
 	auto bounds = getLocalBounds().reduced(24);
 
+	auto buttonRow = bounds.removeFromBottom(40);
+	bounds.removeFromBottom(16);
+
+	auto connectionArea = bounds.removeFromBottom(74);
+	bounds.removeFromBottom(12);
+
 	auto headerArea = bounds.removeFromTop(30);
 	label.setBounds(headerArea.removeFromLeft(180));
 
 	bounds.removeFromTop(8);
-	auto tagsArea = bounds.removeFromTop(160);
+	auto tagsArea = bounds;
 	textEditor.setBounds(tagsArea);
 
-	bounds.removeFromTop(12);
-	auto connectionArea = bounds.removeFromTop(74);
 	auto columnWidth = (connectionArea.getWidth() - 16) / 2;
 	auto ipColumn = connectionArea.removeFromLeft(columnWidth);
 	connectionArea.removeFromLeft(16);
@@ -171,8 +175,6 @@ void OSC_ClientAudioProcessorEditor::resized()
 	portColumn.removeFromTop(4);
 	portEditor.setBounds(portColumn.removeFromTop(editorHeight));
 
-	bounds.removeFromTop(16);
-	auto buttonRow = bounds.removeFromTop(40);
 	auto buttonWidth = 150;
 
 	reconnectButton.setBounds(buttonRow.removeFromLeft(buttonWidth));
