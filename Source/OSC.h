@@ -88,7 +88,7 @@ public:
         // Iterate over each type tag and read the corresponding argument
         for (int i = 1; i < typeTagString.length(); ++i) // Start from 1 to skip the comma
         {
-            char typeTag = typeTagString[i];
+            const auto typeTag = typeTagString[i];
             switch (typeTag)
             {
             case 's':

@@ -17,9 +17,9 @@ OSC_ClientAudioProcessorEditor::OSC_ClientAudioProcessorEditor (OSC_ClientAudioP
     setLookAndFeel(&globalLookAndFeel);
     setSize (480, 320);
 
-	const juce::Font headingFont("Segoe UI", 16.0f, juce::Font::bold);
-	const juce::Font labelFont("Segoe UI", 13.0f, juce::Font::bold);
-	const juce::Font editorFont("Segoe UI", 14.0f, juce::Font::plain);
+	const juce::Font headingFont(juce::FontOptions("Segoe UI", 16.0f, juce::Font::bold));
+	const juce::Font labelFont(juce::FontOptions("Segoe UI", 13.0f, juce::Font::bold));
+	const juce::Font editorFont(juce::FontOptions("Segoe UI", 14.0f, juce::Font::plain));
 
 	addAndMakeVisible(label);
 	label.setText("Tags", juce::dontSendNotification);
@@ -78,7 +78,7 @@ OSC_ClientAudioProcessorEditor::OSC_ClientAudioProcessorEditor (OSC_ClientAudioP
 	getTagsButton.setColour(juce::TextButton::buttonColourId, globalLookAndFeel.getAccentColour());
 	getTagsButton.onClick = [this]() 
 		{ 
-			auto& tags = audioProcessor.receiver.getLatestTags();
+			auto tags = audioProcessor.receiver.getLatestTags();
 			// convert StringArray to new line separated string list
 			juce::String tagsAsString = tags.joinIntoString("\n");
 			
@@ -87,30 +87,37 @@ OSC_ClientAudioProcessorEditor::OSC_ClientAudioProcessorEditor (OSC_ClientAudioP
 				
 		};
 
+    addAndMakeVisible(aboutButton);
+    aboutButton.setButtonText("About");
+    aboutButton.onClick = [this]()
+        {
+            showAboutDialog();
+        };
+
 }
 
 
 
-void OSC_ClientAudioProcessorEditor::textEditorFocusLost(juce::TextEditor& textEditor)
+void OSC_ClientAudioProcessorEditor::textEditorFocusLost(juce::TextEditor& lostEditor)
 {
-	if (&textEditor == &ipAddressEditor)
+	if (&lostEditor == &ipAddressEditor)
 	{
 		// Get the text from the text editor
 		auto text = ipAddressEditor.getText();
 		// Send the text to the processor
 		audioProcessor.setIpAddress(text);
 	}
-	else if (&textEditor == &portEditor)
+	else if (&lostEditor == &portEditor)
 	{
 		// Get the text from the text editor
 		auto text = portEditor.getText();
 		// Send the text to the processor
 		audioProcessor.setPort(text.getIntValue());
 	}
-	else if (&textEditor == &this->textEditor)
+	else if (&lostEditor == &this->textEditor)
 	{
 		// Get the text from the text editor
-		auto text = textEditor.getText();
+		auto text = lostEditor.getText();
 		// Send the text to the processor
 		audioProcessor.setTags(text);
 	}
@@ -175,10 +182,76 @@ void OSC_ClientAudioProcessorEditor::resized()
 	portColumn.removeFromTop(4);
 	portEditor.setBounds(portColumn.removeFromTop(editorHeight));
 
-	auto buttonWidth = 150;
+	auto buttonWidth = (buttonRow.getWidth() - 32) / 3;
 
 	reconnectButton.setBounds(buttonRow.removeFromLeft(buttonWidth));
 	buttonRow.removeFromLeft(16);
 	getTagsButton.setBounds(buttonRow.removeFromLeft(buttonWidth));
+	buttonRow.removeFromLeft(16);
+	aboutButton.setBounds(buttonRow.removeFromLeft(buttonWidth));
 
+}
+
+void OSC_ClientAudioProcessorEditor::showAboutDialog()
+{
+    struct AboutContent : public juce::Component
+    {
+        AboutContent(const juce::Colour& background, const juce::Colour& outline, const juce::Colour& linkColourIn)
+            : link("More at github.com/ruchirlives", juce::URL("https://github.com/ruchirlives")),
+              bg(background),
+              outlineColour(outline),
+              linkColour(linkColourIn)
+        {
+            createdBy.setText("Created by Ruchir Shah (c) 2024.", juce::dontSendNotification);
+            builtOn.setText("Built on JUCE and released as open source AGPL", juce::dontSendNotification);
+
+            for (auto* label : { &createdBy, &builtOn })
+            {
+                label->setColour(juce::Label::textColourId, juce::Colours::whitesmoke);
+                label->setJustificationType(juce::Justification::centredLeft);
+                label->setFont(juce::Font(juce::FontOptions(13.0f)));
+                addAndMakeVisible(*label);
+            }
+
+            link.setColour(juce::HyperlinkButton::textColourId, linkColour);
+            addAndMakeVisible(link);
+        }
+
+        void paint(juce::Graphics& g) override
+        {
+            auto bounds = getLocalBounds().toFloat();
+            g.setColour(bg);
+            g.fillRoundedRectangle(bounds, 8.0f);
+            g.setColour(outlineColour);
+            g.drawRoundedRectangle(bounds, 8.0f, 1.0f);
+        }
+
+        void resized() override
+        {
+            auto area = getLocalBounds().reduced(16);
+            auto lineHeight = 22;
+            createdBy.setBounds(area.removeFromTop(lineHeight));
+            area.removeFromTop(4);
+            builtOn.setBounds(area.removeFromTop(lineHeight));
+            area.removeFromTop(8);
+            link.setBounds(area.removeFromTop(lineHeight + 4));
+        }
+
+    private:
+        juce::Label createdBy;
+        juce::Label builtOn;
+        juce::HyperlinkButton link;
+        juce::Colour bg;
+        juce::Colour outlineColour;
+        juce::Colour linkColour;
+    };
+
+    auto content = std::make_unique<AboutContent>(globalLookAndFeel.getPanelColour().withAlpha(0.95f),
+                                                  juce::Colours::white.withAlpha(0.15f),
+                                                  globalLookAndFeel.getAccentColour());
+    content->setSize(320, 140);
+
+    juce::CallOutBox::launchAsynchronously(std::move(content),
+                                           aboutButton.getScreenBounds(),
+                                           this);
 }

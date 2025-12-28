@@ -99,7 +99,7 @@ public:
                         bool isButtonDown) override
     {
         juce::ignoreUnused(isMouseOverButton, isButtonDown);
-        juce::Font font(14.0f, juce::Font::bold);
+        juce::Font font(juce::FontOptions(14.0f, juce::Font::bold));
         g.setFont(font);
         g.setColour(button.findColour(juce::TextButton::textColourOffId));
         g.drawFittedText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, 1);
@@ -116,7 +116,7 @@ public:
         g.setColour(juce::Colours::white.withAlpha(0.7f));
         g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
 
-        juce::Font font(12.0f, juce::Font::bold);
+        juce::Font font(juce::FontOptions(12.0f, juce::Font::bold));
         g.setFont(font);
         g.setColour(juce::Colours::white);
         g.drawFittedText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, 1);
@@ -141,7 +141,7 @@ class OSC_ClientAudioProcessorEditor : public juce::AudioProcessorEditor, public
 {
 public:
 	// Add the listener to the class
-	void textEditorFocusLost(juce::TextEditor& textEditor) override;
+	void textEditorFocusLost(juce::TextEditor& editor) override;
 
     OSC_ClientAudioProcessorEditor (OSC_ClientAudioProcessor&);
     ~OSC_ClientAudioProcessorEditor() override;
@@ -173,7 +173,12 @@ private:
 	// Create a button to get the latest tags
 	juce::TextButton getTagsButton;
 
+    // About button
+    juce::TextButton aboutButton;
+
 	GlobalLookAndFeel globalLookAndFeel;
+
+    void showAboutDialog();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OSC_ClientAudioProcessorEditor)
 };

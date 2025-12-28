@@ -93,15 +93,18 @@ int OSC_ClientAudioProcessor::getCurrentProgram()
 
 void OSC_ClientAudioProcessor::setCurrentProgram(int index)
 {
+    juce::ignoreUnused(index);
 }
 
 const juce::String OSC_ClientAudioProcessor::getProgramName(int index)
 {
+    juce::ignoreUnused(index);
     return {};
 }
 
 void OSC_ClientAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
+    juce::ignoreUnused(index, newName);
 }
 
 //==============================================================================
@@ -147,13 +150,12 @@ bool OSC_ClientAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts
 
 void OSC_ClientAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    juce::ignoreUnused(buffer);
     juce::MidiMessage message;
-    int samplePosition;
 
     for (const auto meta : midiMessages)
     {
         message = meta.getMessage();
-        samplePosition = meta.samplePosition;
 
         DBG("Received MIDI message: " << message.getDescription()); // Add this line
 
@@ -236,9 +238,9 @@ juce::String OSC_ClientAudioProcessor::getIpAddress()
     return juce::String(ipAddress);
 }
 
-void OSC_ClientAudioProcessor::setIpAddress(const juce::String& ipAddress)
+void OSC_ClientAudioProcessor::setIpAddress(const juce::String& newIpAddress)
 {
-	this->ipAddress = ipAddress;
+	this->ipAddress = newIpAddress;
 }
 
 int OSC_ClientAudioProcessor::getPort()
@@ -246,9 +248,9 @@ int OSC_ClientAudioProcessor::getPort()
 	return port;
 }
 
-void OSC_ClientAudioProcessor::setPort(int port)
+void OSC_ClientAudioProcessor::setPort(int newPort)
 {
-	this->port = port;
+	this->port = newPort;
 }
 
 

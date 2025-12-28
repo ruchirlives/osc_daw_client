@@ -40,9 +40,9 @@ public:
 
 	// Get and set ip address and port
 	juce::String getIpAddress();
-	void setIpAddress(const juce::String& ipAddress);
+	void setIpAddress(const juce::String& newIpAddress);
 	int getPort();
-	void setPort(int port);
+	void setPort(int newPort);
 
 
 
