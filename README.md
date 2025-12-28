@@ -1,6 +1,6 @@
 # OSC_Client
 
-This is a VST3 client for DAWSERVER OSC_Server
+This is a VST3 client for and part of OSCDawServer
 It requires [JUCE]([url](https://juce.com/)) installed
 
 Copyright (c) 2024 Ruchir Shah
