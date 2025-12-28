@@ -14,35 +14,34 @@
 OSC_ClientAudioProcessorEditor::OSC_ClientAudioProcessorEditor (OSC_ClientAudioProcessor& p)
 	: AudioProcessorEditor(&p), audioProcessor(p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 250);
+    setLookAndFeel(&globalLookAndFeel);
+    setSize (480, 320);
 
-	// Set the label text
+	const juce::Font headingFont("Segoe UI", 16.0f, juce::Font::bold);
+	const juce::Font labelFont("Segoe UI", 13.0f, juce::Font::bold);
+	const juce::Font editorFont("Segoe UI", 14.0f, juce::Font::plain);
+
 	addAndMakeVisible(label);
 	label.setText("Tags", juce::dontSendNotification);
-	label.setColour(juce::Label::textColourId, juce::Colours::white); // Set the text colour explicitly
-	label.setFont(juce::Font(15.0f, juce::Font::bold)); // Set the font and size
+	label.setFont(headingFont);
+	label.setColour(juce::Label::textColourId, juce::Colours::whitesmoke);
 
-	// Add the text editor to the editor
 	addAndMakeVisible(textEditor);
 	textEditor.setMultiLine(true);
 	textEditor.setReturnKeyStartsNewLine(true);
 	textEditor.setReadOnly(false);
 	textEditor.setScrollbarsShown(true);
 	textEditor.addListener(this);
-
-	// Allow to tab out of the text editor
 	textEditor.setWantsKeyboardFocus(true);
+	textEditor.setFont(editorFont);
+	textEditor.setJustification(juce::Justification::topLeft);
 
-	// Set the text in the text editor to the tags from the processor
 	textEditor.setText(audioProcessor.getTags());
 
-	// Set the port and IP address labels
 	addAndMakeVisible(ipAddressLabel);
 	ipAddressLabel.setText("IP Address", juce::dontSendNotification);
-	ipAddressLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-	ipAddressLabel.setFont(juce::Font(15.0f, juce::Font::bold));
+	ipAddressLabel.setColour(juce::Label::textColourId, juce::Colours::whitesmoke);
+	ipAddressLabel.setFont(labelFont);
 
 	addAndMakeVisible(ipAddressEditor);
 	ipAddressEditor.setMultiLine(false);
@@ -50,12 +49,14 @@ OSC_ClientAudioProcessorEditor::OSC_ClientAudioProcessorEditor (OSC_ClientAudioP
 	ipAddressEditor.setReadOnly(false);
 	ipAddressEditor.setScrollbarsShown(false);
 	ipAddressEditor.addListener(this);
+	ipAddressEditor.setFont(editorFont);
+	ipAddressEditor.setJustification(juce::Justification::centredLeft);
 	ipAddressEditor.setText(audioProcessor.getIpAddress());
 
 	addAndMakeVisible(portLabel);
 	portLabel.setText("Port", juce::dontSendNotification);
-	portLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-	portLabel.setFont(juce::Font(15.0f, juce::Font::bold));
+	portLabel.setColour(juce::Label::textColourId, juce::Colours::whitesmoke);
+	portLabel.setFont(labelFont);
 
 	addAndMakeVisible(portEditor);
 	portEditor.setMultiLine(false);
@@ -63,14 +64,18 @@ OSC_ClientAudioProcessorEditor::OSC_ClientAudioProcessorEditor (OSC_ClientAudioP
 	portEditor.setReadOnly(false);
 	portEditor.setScrollbarsShown(false);
 	portEditor.addListener(this);
+	portEditor.setFont(editorFont);
+	portEditor.setJustification(juce::Justification::centredLeft);
 	portEditor.setText(juce::String(audioProcessor.getPort()));
 
 	addAndMakeVisible(reconnectButton);
 	reconnectButton.setButtonText("Reconnect");
+	reconnectButton.setColour(juce::TextButton::buttonColourId, globalLookAndFeel.getPanelColour().brighter(0.1f));
 	reconnectButton.onClick = [this]() { audioProcessor.reConnect(); };
 
 	addAndMakeVisible(getTagsButton);
 	getTagsButton.setButtonText("Get Tags");
+	getTagsButton.setColour(juce::TextButton::buttonColourId, globalLookAndFeel.getAccentColour());
 	getTagsButton.onClick = [this]() 
 		{ 
 			auto& tags = audioProcessor.receiver.getLatestTags();
@@ -102,7 +107,7 @@ void OSC_ClientAudioProcessorEditor::textEditorFocusLost(juce::TextEditor& textE
 		// Send the text to the processor
 		audioProcessor.setPort(text.getIntValue());
 	}
-	else if (&textEditor == &textEditor)
+	else if (&textEditor == &this->textEditor)
 	{
 		// Get the text from the text editor
 		auto text = textEditor.getText();
@@ -113,39 +118,65 @@ void OSC_ClientAudioProcessorEditor::textEditorFocusLost(juce::TextEditor& textE
 
 OSC_ClientAudioProcessorEditor::~OSC_ClientAudioProcessorEditor()
 {
+	setLookAndFeel(nullptr);
 }
 
 //==============================================================================
 void OSC_ClientAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll (globalLookAndFeel.getBaseColour());
 
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (15.0f));
+    auto bounds = getLocalBounds().reduced(16).toFloat();
+    juce::DropShadow shadow(globalLookAndFeel.getShadowColour(), 12, { 0, 4 });
+    shadow.drawForRectangle(g, bounds.toNearestInt());
+
+    juce::ColourGradient gradient(globalLookAndFeel.getPanelColour().brighter(0.12f),
+                                  bounds.getX(), bounds.getY(),
+                                  globalLookAndFeel.getPanelColour().darker(0.08f),
+                                  bounds.getX(), bounds.getBottom(), false);
+    g.setGradientFill(gradient);
+    g.fillRoundedRectangle(bounds, 12.0f);
+
+    g.setColour(juce::Colours::white.withAlpha(0.15f));
+    g.drawRoundedRectangle(bounds, 12.0f, 1.5f);
 
 }
 
 void OSC_ClientAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+	auto bounds = getLocalBounds().reduced(24);
 
-	label.setBounds(10, 10, 100, 20);
-	// Layout texteditor relative
-	textEditor.setBounds(10, 30, getWidth() - 20, 100);
+	auto headerArea = bounds.removeFromTop(30);
+	label.setBounds(headerArea.removeFromLeft(180));
 
-	// Layout IP address and port labels
-	ipAddressLabel.setBounds(10, getHeight() - 100, 100, 20);
-	ipAddressEditor.setBounds(10, getHeight() - 80, 100, 20);
-	portLabel.setBounds(120, getHeight() - 100, 100, 20);
-	portEditor.setBounds(120, getHeight() - 80, 100, 20);
+	bounds.removeFromTop(8);
+	auto tagsArea = bounds.removeFromTop(160);
+	textEditor.setBounds(tagsArea);
 
-	// Layout reconnect button
-	reconnectButton.setBounds(10, getHeight() - 50, 100, 20);
+	bounds.removeFromTop(12);
+	auto connectionArea = bounds.removeFromTop(74);
+	auto columnWidth = (connectionArea.getWidth() - 16) / 2;
+	auto ipColumn = connectionArea.removeFromLeft(columnWidth);
+	connectionArea.removeFromLeft(16);
+	auto portColumn = connectionArea;
 
-	// Layout get tags button
-	getTagsButton.setBounds(120, getHeight() - 50, 100, 20);
-	
+	auto labelHeight = 20;
+	auto editorHeight = 32;
+
+	ipAddressLabel.setBounds(ipColumn.removeFromTop(labelHeight));
+	ipColumn.removeFromTop(4);
+	ipAddressEditor.setBounds(ipColumn.removeFromTop(editorHeight));
+
+	portLabel.setBounds(portColumn.removeFromTop(labelHeight));
+	portColumn.removeFromTop(4);
+	portEditor.setBounds(portColumn.removeFromTop(editorHeight));
+
+	bounds.removeFromTop(16);
+	auto buttonRow = bounds.removeFromTop(40);
+	auto buttonWidth = 150;
+
+	reconnectButton.setBounds(buttonRow.removeFromLeft(buttonWidth));
+	buttonRow.removeFromLeft(16);
+	getTagsButton.setBounds(buttonRow.removeFromLeft(buttonWidth));
 
 }

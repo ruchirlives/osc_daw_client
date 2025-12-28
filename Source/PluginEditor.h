@@ -15,6 +15,127 @@
 //==============================================================================
 /**
 */
+class GlobalLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    GlobalLookAndFeel()
+        : base(juce::Colours::darkslategrey.darker(0.25f)),
+          panel(base.brighter(0.1f)),
+          accent(juce::Colour::fromRGB(90, 224, 255)),
+          shadowColour(juce::Colours::black.withAlpha(0.35f))
+    {
+        setColour(juce::ResizableWindow::backgroundColourId, base);
+        setColour(juce::TextButton::buttonColourId, panel);
+        setColour(juce::TextButton::buttonOnColourId, accent);
+        setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+        setColour(juce::TextButton::textColourOnId, juce::Colours::white);
+
+        setColour(juce::ComboBox::backgroundColourId, panel);
+        setColour(juce::ComboBox::outlineColourId, juce::Colours::white.withAlpha(0.25f));
+        setColour(juce::ComboBox::textColourId, juce::Colours::white);
+
+        setColour(juce::Label::textColourId, juce::Colours::whitesmoke);
+
+        setColour(juce::PopupMenu::backgroundColourId, base);
+        setColour(juce::PopupMenu::textColourId, juce::Colours::white);
+        setColour(juce::PopupMenu::highlightedBackgroundColourId, accent.withAlpha(0.35f));
+        setColour(juce::PopupMenu::highlightedTextColourId, juce::Colours::white);
+
+        setColour(juce::Slider::thumbColourId, accent);
+        setColour(juce::Slider::trackColourId, panel.brighter(0.2f));
+        setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::white.withAlpha(0.2f));
+
+        setColour(juce::TextEditor::backgroundColourId, base.darker(0.5f));
+        setColour(juce::TextEditor::outlineColourId, juce::Colours::white.withAlpha(0.3f));
+        setColour(juce::TextEditor::textColourId, juce::Colours::white);
+        setColour(juce::TextEditor::highlightColourId, accent.withAlpha(0.45f));
+
+        setColour(juce::ListBox::backgroundColourId, panel.darker(0.08f));
+        setColour(juce::ListBox::outlineColourId, juce::Colours::white.withAlpha(0.15f));
+
+        setDefaultSansSerifTypefaceName("Segoe UI");
+    }
+
+    juce::Colour getBaseColour() const { return base; }
+    juce::Colour getPanelColour() const { return panel; }
+    juce::Colour getAccentColour() const { return accent; }
+    juce::Colour getShadowColour() const { return shadowColour; }
+
+    void drawTextEditorOutline(juce::Graphics& g, int width, int height, juce::TextEditor& textEditor) override
+    {
+        juce::ignoreUnused(width, height);
+        auto outlineColour = textEditor.findColour(juce::TextEditor::outlineColourId);
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(textEditor.getLocalBounds().toFloat(), 8.0f, 1.5f);
+    }
+
+    void fillTextEditorBackground(juce::Graphics& g, int width, int height, juce::TextEditor& textEditor) override
+    {
+        juce::ignoreUnused(width, height);
+        auto bg = textEditor.findColour(juce::TextEditor::backgroundColourId);
+        g.setColour(bg);
+        g.fillRoundedRectangle(textEditor.getLocalBounds().toFloat(), 8.0f);
+    }
+
+    void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
+                              bool isMouseOverButton, bool isButtonDown) override
+    {
+        auto bounds = button.getLocalBounds().toFloat();
+
+        juce::DropShadow shadow(shadowColour, 8, { 2, 3 });
+        shadow.drawForRectangle(g, bounds.toNearestInt());
+
+        auto baseColour = backgroundColour.interpolatedWith(juce::Colours::black, isButtonDown ? 0.25f : 0.0f);
+        if (isMouseOverButton)
+            baseColour = baseColour.brighter(0.08f);
+
+        g.setColour(baseColour);
+        g.fillRoundedRectangle(bounds, 8.0f);
+    }
+
+    void drawButtonText(juce::Graphics& g, juce::TextButton& button, bool isMouseOverButton,
+                        bool isButtonDown) override
+    {
+        juce::ignoreUnused(isMouseOverButton, isButtonDown);
+        juce::Font font("Segoe UI", 14.0f, juce::Font::bold);
+        g.setFont(font);
+        g.setColour(button.findColour(juce::TextButton::textColourOffId));
+        g.drawFittedText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, 1);
+    }
+
+    void drawToggleButton(juce::Graphics& g, juce::ToggleButton& button, bool shouldDrawButtonAsHighlighted,
+                          bool shouldDrawButtonAsDown) override
+    {
+        juce::ignoreUnused(shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+        auto bounds = button.getLocalBounds().toFloat().reduced(3.0f);
+        auto background = button.getToggleState() ? accent : panel;
+        g.setColour(background);
+        g.fillRoundedRectangle(bounds, bounds.getHeight() / 2.0f);
+
+        g.setColour(juce::Colours::white.withAlpha(0.6f));
+        g.drawRoundedRectangle(bounds, bounds.getHeight() / 2.0f, 1.0f);
+
+        juce::Font font("Segoe UI", 12.0f, juce::Font::bold);
+        g.setFont(font);
+        g.setColour(juce::Colours::white);
+        g.drawFittedText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, 1);
+    }
+
+    void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
+    {
+        g.setColour(findColour(juce::PopupMenu::backgroundColourId));
+        g.fillRoundedRectangle(0, 0, (float) width, (float) height, 8.0f);
+        g.setColour(juce::Colours::white.withAlpha(0.15f));
+        g.drawRoundedRectangle(0, 0, (float) width, (float) height, 8.0f, 1.2f);
+    }
+
+private:
+    const juce::Colour base;
+    const juce::Colour panel;
+    const juce::Colour accent;
+    const juce::Colour shadowColour;
+};
+
 class OSC_ClientAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::TextEditor::Listener
 {
 public:
@@ -50,6 +171,8 @@ private:
 
 	// Create a button to get the latest tags
 	juce::TextButton getTagsButton;
+
+	GlobalLookAndFeel globalLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OSC_ClientAudioProcessorEditor)
 };
