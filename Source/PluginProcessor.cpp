@@ -185,6 +185,12 @@ void OSC_ClientAudioProcessor::sendOscMessage(const juce::MidiMessage& message)
 {
     juce::OSCMessage oscMessage = createOscMessage(message);
 
+    if (tags.isEmpty())
+    {
+        DBG("Skipping OSC send: no tags configured to target an instrument.");
+        return;
+    }
+
     for (const auto& tag : tags)
     {
         oscMessage.addString(tag);
@@ -206,8 +212,8 @@ void OSC_ClientAudioProcessor::sendOscMessage(const juce::MidiMessage& message)
 juce::OSCMessage OSC_ClientAudioProcessor::createOscMessage(const juce::MidiMessage& message)
 {
 	// Get current time in milliseconds
-	auto now = juce::Time::getMillisecondCounterHiRes();
-    int timestamp = 0;
+	const double now = juce::Time::getMillisecondCounterHiRes();
+    const float timestamp = static_cast<float>(now);
 
     if (message.isNoteOn())
     {

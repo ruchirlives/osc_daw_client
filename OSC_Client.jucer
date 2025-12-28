@@ -4,7 +4,8 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginFormats="buildVST3"
               pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginWantsMidiIn"
               pluginManufacturer="ruchirlives" pluginVST3Category="Instrument,Network"
-              bundleIdentifier="com.ruchirlives.OSC_Client">
+              bundleIdentifier="com.ruchirlives.OSC_Client" companyEmail="@ruchirlives"
+              companyWebsite="https://github.com/ruchirlives" companyCopyright="Ruchir Shah (c) 2024">
   <MAINGROUP id="R6WTfn" name="OSC_Client">
     <GROUP id="{A469CEAE-71A9-CA03-21F7-67945227E394}" name="Source">
       <FILE id="retMKx" name="PluginProcessor.cpp" compile="1" resource="0"
