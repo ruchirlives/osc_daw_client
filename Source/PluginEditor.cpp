@@ -196,8 +196,8 @@ void OSC_ClientAudioProcessorEditor::showAboutDialog()
 			  outlineColour(outline),
 			  linkColour(linkColourIn)
 		{
-			createdBy.setText(juce::String("Created by Ruchir Shah (c) 2024.\nBuilt on JUCE\nOSCDawServer ") + juce::String(ProjectInfo::versionString), juce::dontSendNotification);
-			builtOn.setText("Built on JUCE and released as open source AGPL", juce::dontSendNotification);
+			createdBy.setText("Created by Ruchir Shah (c) 2024.\n", juce::dontSendNotification);
+			builtOn.setText("Built on JUCE and released as open source AGPL\nOSCDawServer OSC_Client " + juce::String(ProjectInfo::versionString), juce::dontSendNotification);
 
 			for (auto *label : {&createdBy, &builtOn})
 			{
