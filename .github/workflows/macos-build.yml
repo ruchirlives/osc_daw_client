@@ -1,0 +1,56 @@
+name: macOS build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build Projucer (from JUCE submodule)
+        run: |
+          xcodebuild \
+            -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
+            -configuration Release \
+            -scheme Projucer \
+            -derivedDataPath build/Projucer
+
+      - name: Resave .jucer to generate Xcode project
+        run: |
+          PROJUCER="build/Projucer/Build/Products/Release/Projucer.app/Contents/MacOS/Projucer"
+          chmod +x "$PROJUCER"
+          "$PROJUCER" --resave OSC_Client.jucer
+
+      - name: Build plugin (Xcode)
+        run: |
+          xcodebuild \
+            -project Builds/MacOSX/OSC_Client.xcodeproj \
+            -configuration Release \
+            -derivedDataPath build/Plugin
+
+      - name: List build products
+        run: |
+          echo "Searching for vst3/component/app bundles..."
+          find build/Plugin -maxdepth 6 -type d \( -name "*.vst3" -o -name "*.component" -o -name "*.app" \) -print
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS-build
+          path: |
+            build/Plugin/**/**/*.vst3
+            build/Plugin/**/**/*.component
+            build/Plugin/**/**/*.app
+          if-no-files-found: warn
