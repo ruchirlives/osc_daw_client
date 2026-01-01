@@ -18,29 +18,42 @@ jobs:
 
       - name: Show Xcode version
         run: xcodebuild -version
-        
+
       - name: Detect Projucer scheme
         id: projucer_scheme
         run: |
-            SCHEME=$(xcodebuild -list -json -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj | \
-            python3 -c "import json,sys; d=json.load(sys.stdin); print(d['project']['schemes'][0])")
-            echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
-            echo "Using scheme: $SCHEME"
+          SCHEME=$(xcodebuild -list -json -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj | \
+          python3 -c "import json,sys; d=json.load(sys.stdin); print(d['project']['schemes'][0])")
+          echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
+          echo "Using scheme: $SCHEME"
 
       - name: Build Projucer (from JUCE submodule)
         run: |
-            xcodebuild \
-            -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
-            -scheme "${{ steps.projucer_scheme.outputs.scheme }}" \
-            -configuration Release \
-            -derivedDataPath build/Projucer \
-            build
+          xcodebuild \
+          -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
+          -scheme "${{ steps.projucer_scheme.outputs.scheme }}" \
+          -configuration Release \
+          -derivedDataPath build/Projucer \
+          build
 
       - name: Resave .jucer to generate Xcode project
         run: |
-          PROJUCER="build/Projucer/Build/Products/Release/Projucer.app/Contents/MacOS/Projucer"
-          chmod +x "$PROJUCER"
-          "$PROJUCER" --resave OSC_Client.jucer
+          set -euo pipefail
+
+          echo "Searching for Projucer.app in derived data..."
+          PROJUCER_APP=$(find build/Projucer -type d -name "Projucer.app" -print -quit || true)
+
+          if [ -z "${PROJUCER_APP}" ]; then
+          echo "Projucer.app not found. Listing build/Projucer for debugging:"
+          find build/Projucer -maxdepth 6 -print
+          exit 1
+          fi
+
+          PROJUCER_BIN="${PROJUCER_APP}/Contents/MacOS/Projucer"
+          echo "Using Projucer binary: ${PROJUCER_BIN}"
+
+          chmod +x "${PROJUCER_BIN}"
+          "${PROJUCER_BIN}" --resave OSC_Client.jucer
 
       - name: Build plugin (Xcode)
         run: |
