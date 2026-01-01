@@ -22,10 +22,10 @@ jobs:
       - name: Build Projucer (from JUCE submodule)
         run: |
           xcodebuild \
-            -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
-            -configuration Release \
-            -scheme Projucer \
-            -derivedDataPath build/Projucer
+          -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
+          -configuration Release \
+          -derivedDataPath build/Projucer \
+          build
 
       - name: Resave .jucer to generate Xcode project
         run: |
