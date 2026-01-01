@@ -55,10 +55,10 @@ jobs:
 
       - name: Resave .jucer to generate Xcode project
         run: |
-          set -euo pipefail
-          PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
-          chmod +x "$PROJUCER_BIN"
-          "$PROJUCER_BIN" --resave OSC_Client.jucer
+            set -euo pipefail
+            PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
+            chmod +x "$PROJUCER_BIN"
+            "$PROJUCER_BIN" --resave OSC_Client.jucer --fix-missing-dependencies
 
       - name: Build plugin (Xcode)
         run: |
