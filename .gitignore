@@ -12,7 +12,7 @@
 .vscode/
 
 Builds/
-JuceLibraryCode/
+# JuceLibraryCode/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
