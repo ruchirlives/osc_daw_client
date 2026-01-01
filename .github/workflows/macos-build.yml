@@ -48,10 +48,10 @@ jobs:
 
       - name: Set JUCE module path for Projucer (CI)
         run: |
-            set -euo pipefail
-            PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
-            chmod +x "$PROJUCER_BIN"
-            "$PROJUCER_BIN" --set-global-search-path macosx "$PWD/JUCE/modules"
+          set -euo pipefail
+          PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
+          chmod +x "$PROJUCER_BIN"
+          "$PROJUCER_BIN" --set-global-search-path osx defaultJuceModulePath "$PWD/JUCE/modules"
 
       - name: Resave .jucer to generate Xcode project
         run: |
