@@ -22,9 +22,10 @@ jobs:
       - name: Detect Projucer scheme
         id: projucer_scheme
         run: |
+          set -euo pipefail
           SCHEME=$(xcodebuild -list -json -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj | \
-          python3 -c "import json,sys; d=json.load(sys.stdin); print(d['project']['schemes'][0])")
-          echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
+            python3 -c "import json,sys; d=json.load(sys.stdin); print(d['project']['schemes'][0])")
+          echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
           echo "Using scheme: $SCHEME"
 
       - name: Build Projucer (from JUCE submodule)
@@ -34,44 +35,59 @@ jobs:
           mkdir -p "$OUTDIR"
 
           xcodebuild \
-          -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
-          -scheme "${{ steps.projucer_scheme.outputs.scheme }}" \
-          -configuration Release \
-          -sdk macosx \
-          -destination "generic/platform=macOS" \
-          CONFIGURATION_BUILD_DIR="$OUTDIR" \
-          build
+            -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
+            -scheme "${{ steps.projucer_scheme.outputs.scheme }}" \
+            -configuration Release \
+            -sdk macosx \
+            -destination "generic/platform=macOS" \
+            CONFIGURATION_BUILD_DIR="$OUTDIR" \
+            build
 
           echo "ProjucerOut contents:"
-          find "$OUTDIR" -maxdepth 3 -print
+          find "$OUTDIR" -maxdepth 4 -print
+
+      - name: Set JUCE module path for Projucer (CI)
+        run: |
+          set -euo pipefail
+          PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
+          if [ ! -f "$PROJUCER_BIN" ]; then
+            echo "Expected Projucer binary not found at: $PROJUCER_BIN"
+            echo "ProjucerOut contents:"
+            find "$PWD/build/ProjucerOut" -maxdepth 6 -print || true
+            exit 1
+          fi
+
+          chmod +x "$PROJUCER_BIN"
+          "$PROJUCER_BIN" --set-global-search-path modules "$PWD/JUCE/modules"
 
       - name: Resave .jucer to generate Xcode project
         run: |
           set -euo pipefail
           PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
-
-          if [ ! -f "$PROJUCER_BIN" ]; then
-          echo "Expected Projucer binary not found at:"
-          echo "$PROJUCER_BIN"
-          echo "ProjucerOut contents:"
-          find "$PWD/build/ProjucerOut" -maxdepth 6 -print || true
-          exit 1
-          fi
-
           chmod +x "$PROJUCER_BIN"
           "$PROJUCER_BIN" --resave OSC_Client.jucer
 
       - name: Build plugin (Xcode)
         run: |
+          set -euo pipefail
+
+          if [ ! -f "Builds/MacOSX/OSC_Client.xcodeproj/project.pbxproj" ]; then
+            echo "Expected Xcode project not found at Builds/MacOSX/OSC_Client.xcodeproj"
+            echo "Searching for generated .xcodeproj files..."
+            find Builds -maxdepth 4 -name "*.xcodeproj" -print || true
+            exit 1
+          fi
+
           xcodebuild \
             -project Builds/MacOSX/OSC_Client.xcodeproj \
             -configuration Release \
-            -derivedDataPath build/Plugin
+            -derivedDataPath build/Plugin \
+            build
 
       - name: List build products
         run: |
           echo "Searching for vst3/component/app bundles..."
-          find build/Plugin -maxdepth 6 -type d \( -name "*.vst3" -o -name "*.component" -o -name "*.app" \) -print
+          find build/Plugin -maxdepth 8 -type d \( -name "*.vst3" -o -name "*.component" -o -name "*.app" \) -print
 
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
