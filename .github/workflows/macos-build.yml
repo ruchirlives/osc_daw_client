@@ -79,17 +79,26 @@ jobs:
           -derivedDataPath build/Plugin \
           build
 
-      - name: List build products
+      - name: Collect build products
         run: |
-          echo "Searching for vst3/component/app bundles..."
-          find build/Plugin -maxdepth 8 -type d \( -name "*.vst3" -o -name "*.component" -o -name "*.app" \) -print
+          set -euo pipefail
+          mkdir -p artifacts
+
+          echo "Searching for VST3/AU outputs..."
+          find . -type d \( -name "*.vst3" -o -name "*.component" \) -print
+
+          # Copy any found bundles into ./artifacts (preserves bundle structure)
+          while IFS= read -r bundle; do
+            echo "Copying: $bundle"
+            cp -R "$bundle" artifacts/
+          done < <(find . -type d \( -name "*.vst3" -o -name "*.component" \))
+
+          echo "Artifacts folder contents:"
+          find artifacts -maxdepth 3 -print
 
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
         with:
           name: macOS-build
-          path: |
-            build/Plugin/**/**/*.vst3
-            build/Plugin/**/**/*.component
-            build/Plugin/**/**/*.app
+          path: artifacts/**
           if-no-files-found: warn
