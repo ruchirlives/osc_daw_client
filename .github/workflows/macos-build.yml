@@ -55,27 +55,29 @@ jobs:
 
       - name: Resave .jucer to generate Xcode project
         run: |
-            set -euo pipefail
-            PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
-            chmod +x "$PROJUCER_BIN"
-            "$PROJUCER_BIN" --resave OSC_Client.jucer --fix-missing-dependencies
+          set -euo pipefail
+          PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
+          chmod +x "$PROJUCER_BIN"
+          "$PROJUCER_BIN" --resave OSC_Client.jucer --fix-missing-dependencies
+
+      - name: Detect plugin scheme
+        id: plugin_scheme
+        run: |
+          set -euo pipefail
+          SCHEME=$(xcodebuild -list -json -project Builds/MacOSX/OSC_Client.xcodeproj | \
+          python3 -c "import json,sys; d=json.load(sys.stdin); print(d['project']['schemes'][0])")
+          echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
+          echo "Using scheme: $SCHEME"
 
       - name: Build plugin (Xcode)
         run: |
           set -euo pipefail
-
-          if [ ! -f "Builds/MacOSX/OSC_Client.xcodeproj/project.pbxproj" ]; then
-            echo "Expected Xcode project not found at Builds/MacOSX/OSC_Client.xcodeproj"
-            echo "Searching for generated .xcodeproj files..."
-            find Builds -maxdepth 4 -name "*.xcodeproj" -print || true
-            exit 1
-          fi
-
           xcodebuild \
-            -project Builds/MacOSX/OSC_Client.xcodeproj \
-            -configuration Release \
-            -derivedDataPath build/Plugin \
-            build
+          -project Builds/MacOSX/OSC_Client.xcodeproj \
+          -scheme "${{ steps.plugin_scheme.outputs.scheme }}" \
+          -configuration Release \
+          -derivedDataPath build/Plugin \
+          build
 
       - name: List build products
         run: |
