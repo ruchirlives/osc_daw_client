@@ -29,36 +29,37 @@ jobs:
 
       - name: Build Projucer (from JUCE submodule)
         run: |
+          set -euo pipefail
+          OUTDIR="$PWD/build/ProjucerOut"
+          mkdir -p "$OUTDIR"
+
           xcodebuild \
           -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
           -scheme "${{ steps.projucer_scheme.outputs.scheme }}" \
           -configuration Release \
-          -derivedDataPath build/Projucer \
+          -sdk macosx \
+          -destination "generic/platform=macOS" \
+          CONFIGURATION_BUILD_DIR="$OUTDIR" \
           build
+
+          echo "ProjucerOut contents:"
+          find "$OUTDIR" -maxdepth 3 -print
 
       - name: Resave .jucer to generate Xcode project
         run: |
           set -euo pipefail
+          PROJUCER_BIN="$PWD/build/ProjucerOut/Projucer.app/Contents/MacOS/Projucer"
 
-          echo "Contents of build/Projucer/Build/Products (recursive):"
-          find build/Projucer/Build/Products -maxdepth 6 -print || true
-
-          echo "Searching for Projucer executable inside an app bundle..."
-          PROJUCER_BIN=$(find build/Projucer -type f -path "*/Projucer.app/Contents/MacOS/Projucer" -print -quit || true)
-
-          if [ -z "${PROJUCER_BIN}" ]; then
-          echo "Projucer binary not found. Searching for any *.app in build/Projucer:"
-          find build/Projucer -type d -name "*.app" -maxdepth 10 -print || true
-
-          echo "Searching for any executable named Projucer (may be in a different bundle name):"
-          find build/Projucer -type f -name "Projucer" -maxdepth 12 -print || true
-
+          if [ ! -f "$PROJUCER_BIN" ]; then
+          echo "Expected Projucer binary not found at:"
+          echo "$PROJUCER_BIN"
+          echo "ProjucerOut contents:"
+          find "$PWD/build/ProjucerOut" -maxdepth 6 -print || true
           exit 1
           fi
 
-          echo "Using Projucer: ${PROJUCER_BIN}"
-          chmod +x "${PROJUCER_BIN}"
-          "${PROJUCER_BIN}" --resave OSC_Client.jucer
+          chmod +x "$PROJUCER_BIN"
+          "$PROJUCER_BIN" --resave OSC_Client.jucer
 
       - name: Build plugin (Xcode)
         run: |
