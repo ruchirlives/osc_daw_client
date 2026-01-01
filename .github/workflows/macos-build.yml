@@ -40,18 +40,23 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Searching for Projucer.app in derived data..."
-          PROJUCER_APP=$(find build/Projucer -type d -name "Projucer.app" -print -quit || true)
+          echo "Contents of build/Projucer/Build/Products (recursive):"
+          find build/Projucer/Build/Products -maxdepth 6 -print || true
 
-          if [ -z "${PROJUCER_APP}" ]; then
-          echo "Projucer.app not found. Listing build/Projucer for debugging:"
-          find build/Projucer -maxdepth 6 -print
+          echo "Searching for Projucer executable inside an app bundle..."
+          PROJUCER_BIN=$(find build/Projucer -type f -path "*/Projucer.app/Contents/MacOS/Projucer" -print -quit || true)
+
+          if [ -z "${PROJUCER_BIN}" ]; then
+          echo "Projucer binary not found. Searching for any *.app in build/Projucer:"
+          find build/Projucer -type d -name "*.app" -maxdepth 10 -print || true
+
+          echo "Searching for any executable named Projucer (may be in a different bundle name):"
+          find build/Projucer -type f -name "Projucer" -maxdepth 12 -print || true
+
           exit 1
           fi
 
-          PROJUCER_BIN="${PROJUCER_APP}/Contents/MacOS/Projucer"
-          echo "Using Projucer binary: ${PROJUCER_BIN}"
-
+          echo "Using Projucer: ${PROJUCER_BIN}"
           chmod +x "${PROJUCER_BIN}"
           "${PROJUCER_BIN}" --resave OSC_Client.jucer
 
