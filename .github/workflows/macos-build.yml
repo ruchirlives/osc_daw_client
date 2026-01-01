@@ -18,14 +18,23 @@ jobs:
 
       - name: Show Xcode version
         run: xcodebuild -version
+        
+      - name: Detect Projucer scheme
+        id: projucer_scheme
+        run: |
+            SCHEME=$(xcodebuild -list -json -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj | \
+            python3 -c "import json,sys; d=json.load(sys.stdin); print(d['project']['schemes'][0])")
+            echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
+            echo "Using scheme: $SCHEME"
 
       - name: Build Projucer (from JUCE submodule)
         run: |
-          xcodebuild \
-          -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
-          -configuration Release \
-          -derivedDataPath build/Projucer \
-          build
+            xcodebuild \
+            -project JUCE/extras/Projucer/Builds/MacOSX/Projucer.xcodeproj \
+            -scheme "${{ steps.projucer_scheme.outputs.scheme }}" \
+            -configuration Release \
+            -derivedDataPath build/Projucer \
+            build
 
       - name: Resave .jucer to generate Xcode project
         run: |
